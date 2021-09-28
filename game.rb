@@ -1,5 +1,10 @@
 require 'tty-reader'
 require 'io/console'
+require 'time'
+
+def get_time
+  return (Time.now.to_f * 1000).to_i
+end
 
 def start_game
     puts "Pi Digits Practice v0.0.1"
@@ -13,6 +18,8 @@ end
 def game_loop
   digitsGuessed = 0 # Increments every time the user makes a correct guess.
   reader = TTY::Reader.new # Reads input from tty so we can evaluate right or wrong as we go.
+  lastTime = 0
+  msArray = []
 
   # Using Rabinowitz and Wagon's spigot algorithm.
   pi_digits = Enumerator.new do |y|
@@ -39,17 +46,20 @@ def game_loop
 
   print "#{pi_digits.next}."
   loop {
+      lastTime = get_time
       current_pi = pi_digits.next
       next_digit = reader.read_char.to_i # Doesn't matter if we get something wrong as it'll eject the player anyway.
       if next_digit != current_pi
           puts "\nThat's wrong, the correct digit is: #{current_pi}"
           break
       else
+          msArray << (get_time - lastTime)
           digitsGuessed += 1
           print next_digit
       end
   }
-  puts "Game over. You got #{digitsGuessed} digits of pi."
+  puts "\nGame over. You got #{digitsGuessed} digits of pi."
+  puts "It took an average of #{msArray.sum / msArray.size}ms per digit."
 
   if(File.exist?("highscore")) 
     scoreFile = File.read("highscore").split
